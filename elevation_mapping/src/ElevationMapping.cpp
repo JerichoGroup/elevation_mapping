@@ -264,11 +264,15 @@ bool ElevationMapping::readParameters() {
 bool ElevationMapping::initialize() {
   ROS_INFO("Elevation mapping node initializing ... ");
   fusionServiceThread_ = boost::thread(boost::bind(&ElevationMapping::runFusionServiceThread, this));
-  ros::Duration(1.0).sleep();  // Need this to get the TF caches fill up.
+  //ros::Duration(1.0).sleep();  // Need this to get the TF caches fill up.
+
+
   resetMapUpdateTimer();
   fusedMapPublishTimer_.start();
+
   visibilityCleanupThread_ = boost::thread(boost::bind(&ElevationMapping::visibilityCleanupThread, this));
   visibilityCleanupTimer_.start();
+
   initializeElevationMap();
   ROS_INFO("Done initializing.");
   return true;
@@ -349,11 +353,11 @@ void ElevationMapping::pointCloudCallback(const sensor_msgs::PointCloud2ConstPtr
       } else {
         ROS_ERROR("Could not get pose information from robot for time %f. Buffer empty?", lastPointCloudUpdateTime_.toSec());
       }
-      return;
     }
-    robotPoseCovariance = Eigen::Map<const Eigen::MatrixXd>(poseMessage->pose.covariance.data(), 6, 6);
-  }
 
+    //robotPoseCovariance = Eigen::Map<const Eigen::MatrixXd>(poseMessage->pose.covariance.data(), 6, 6);
+
+  }
   // Process point cloud.
   PointCloudType::Ptr pointCloudProcessed(new PointCloudType);
   Eigen::VectorXf measurementVariances;
@@ -490,9 +494,7 @@ bool ElevationMapping::updatePrediction(const ros::Time& time) {
     } else {
       ROS_ERROR("Could not get pose information from robot for time %f. Buffer empty?", lastPointCloudUpdateTime_.toSec());
     }
-    return false;
   }
-
   kindr::HomTransformQuatD robotPose;
   kindr_ros::convertFromRosGeometryMsg(poseMessage->pose.pose, robotPose);
   // Covariance is stored in row-major in ROS: http://docs.ros.org/api/geometry_msgs/html/msg/PoseWithCovariance.html
